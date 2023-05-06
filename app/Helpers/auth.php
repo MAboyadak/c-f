@@ -12,6 +12,16 @@ function isAuthenticated()
     }
 }
 
+function isAuthorized($role = 'user')
+{
+    $user = getAuth();
+    if ($user['role'] == $role){
+        return true;
+    }else{
+        return false;
+    }
+}
+
 function getAuth()
 {
     if(isAuthenticated()){

@@ -21,9 +21,6 @@ class ContactController extends Controller
 
     public function showForm()
     {
-        // if(isAuthenticated()){
-            
-        // }
         $fileName = 'contact-form';
         return view($fileName);
     }
@@ -64,6 +61,12 @@ class ContactController extends Controller
 
     public function getMessages()
     {
+        if(! isAuthorized()){
+            $_SESSION['error'] = 'You don\'t have permission to visit this page';
+            header('Location: /inisev/contact');
+            exit;
+        }
+
         $fileName = 'messages';
         $messages = SQL::getAll('messages');
         $data = new stdClass();
