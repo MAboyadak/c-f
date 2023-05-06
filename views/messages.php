@@ -1,9 +1,12 @@
+
+
+<h2 class="text-center p-2 rounded bg-secondary text-white">ALl Messages</h2>
 <?php if(isset($_SESSION['success'])) { ?>
-    <div class="bg-success text-white">
+    <div class="bg-success p-2 my-2 text-white">
         <?php echo $_SESSION['success'] ; ?>
     </div>
-<?php } ?>
-<h2 class="text-center p-2 rounded bg-secondary text-white">ALl Messages</h2>
+<?php unset($_SESSION['success']); } ?>
+
 <table class="table table-striped">
   <tr>
     <th>#</th>

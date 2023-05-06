@@ -12,8 +12,8 @@ class SQL
     {
         $query = 'SELECT * FROM ' . $tableName . ' where id = :id';
         $sth = self::prepareStmt($query);
-        self::$conn->execute([':id' => $id]);
-        return $sth->fetchAll();
+        $sth->execute([':id' => $id]);
+        return $sth->fetch();
     }
 
     public static function getAll($tableName)
@@ -27,8 +27,25 @@ class SQL
     public static function queryWithParams($query, $params)
     {
         $sth = self::prepareStmt($query);
-        $sth->execute([$params[0],$params[1],$params[2],$params[3]]);
+        $sth->execute($params);
         return $sth->fetchAll();
+    }
+
+    public static function findWithParams($query, $params)
+    {
+        $sth = self::prepareStmt($query);
+        $sth->execute($params);
+        return $sth->fetch();
+    }
+
+    public static function save($query, $params)
+    {
+        $sth = self::prepareStmt($query);
+        if(! $sth->execute($params)){
+            return false;
+        }else{
+            return self::$conn->lastInsertId();
+        }
     }
 
     private static function prepareStmt($query)

@@ -8,8 +8,22 @@ use stdClass;
 class ContactController extends Controller
 {
 
+    public function __construct()
+    {
+        parent::__construct();
+
+        if(! isAuthenticated()){
+            $_SESSION['error'] = 'You must be authenticated first';
+            header('Location: /inisev/login');
+            exit;
+        }
+    }
+
     public function showForm()
     {
+        // if(isAuthenticated()){
+            
+        // }
         $fileName = 'contact-form';
         return view($fileName);
     }
@@ -17,29 +31,35 @@ class ContactController extends Controller
     public function storeMessage()
     {
         $errors = [];
-        $this->validateForm($_POST, $errors);
-        // $this->sanitizeData();
-
-        $data = new stdClass();
+        $_POST = _trim($_POST);
+        $this->sanitizeData();
+        $this->validateData($_POST, $errors);
 
         if($errors){
-            $fileName = 'contact-form';
-            $data->errors = $errors;
-            return view($fileName, $data);
+            $_SESSION['errors'] = $errors;
+            header('Location: /inisev/contact');
+            return;
         }
         
-        $requestData = [];
-        $requestData[] = $_POST['name'];
-        $requestData[] = $_POST['email'];
-        $requestData[] = $_POST['subject'];
-        $requestData[] = $_POST['message'];
+        $params = [
+            ':name' => $_POST['name'],
+            ':email' => $_POST['email'],
+            ':subject' => $_POST['subject'],
+            ':message' => $_POST['message'],
+        ];
         
-        $query = 'insert into `messages` (`id`, `name`, `email`, `subject`, `message`) VALUES (NULL, ?, ?, ?, ?)';
-        SQL::queryWithParams($query, $requestData);
+        $query = 'insert into `messages` (`id`, `name`, `email`, `subject`, `message`) VALUES (NULL, :name, :email, :subject, :message)';
+        try{
+            SQL::save($query, $params);
+        }catch(\PDOException $e){
+            $_SESSION['error'] = 'Error in sending message :: ' . $e->getMessage();
+            header('Location: /inisev/contact');
+            return;
+        }
 
-        $fileName = 'messages';
-        $_SESSION['success'] = 'Message Stored Successfullyyyyyyyy';
-        return $this->getMessages();
+        $_SESSION['success'] = 'Message Stored Successfully';
+        header('Location: /inisev/messages');
+        return;
     }
 
     public function getMessages()
@@ -48,35 +68,41 @@ class ContactController extends Controller
         $messages = SQL::getAll('messages');
         $data = new stdClass();
         $data->messages = $messages;
-        return view($fileName, $data);
+        view($fileName, $data);
+        return;
     }
 
-    private function validateForm($data, &$errors)
+    private function validateData($data, &$errors)
     {
-        if (! isset($data['name']) || empty($data['name'])) {
+        if (isEmpty($data['name'])) {
             $errors['name'] = 'Name Field Can\'t be empty';
         }
-        
-        if (! isset($data['email']) || empty($data['email'])){
-            $errors['email'] = 'Email Field Can\'t be empty';
-        }
 
-        if (! isset($data['subject']) || empty($data['subject'])){
-            $errors['subject'] = 'Subject Field Can\'t be empty';
-        }
-        if (! isset($data['message']) || empty($data['message'])){
-            $errors['message'] = 'Message Field Can\'t be empty';
+        if (isEmpty($data['email'])) {
+            $errors['email'] = 'Email Field Can\'t be empty';
         }
 
         if (isset($data['email']) &&  ( !filter_var($data['email'], FILTER_VALIDATE_EMAIL) ) ) {
             $errors['email'] = 'Email Field is not valid';
         }
+                
+        if (isEmpty($data['subject'])) {
+            $errors['subject'] = 'Subject Field Can\'t be empty';
+        }
 
+        if (isEmpty($data['message'])) {
+            $errors['message'] = 'Message Field Can\'t be empty';
+        }
+        return;
     }
 
     private function sanitizeData()
     {
-
+        $_POST['name'] = sanitize($_POST['name']);
+        $_POST['email'] = sanitize($_POST['email'], 'email');
+        $_POST['subject'] = sanitize($_POST['subject']);
+        $_POST['message'] = sanitize($_POST['message']);
+        return;
     }
 
 }

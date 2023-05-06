@@ -1,17 +1,22 @@
 <?php 
 
-function view($fileName, $data = null)
+function view($fileName, $data = null, $layout = null)
 {
-    $layoutContent = renderLayout($data);
+    $layoutContent = renderLayout($data, $layout);
     $viewContent = renderView($fileName, $data);
     echo str_replace('{{content}}', $viewContent, $layoutContent);
 }
 
-function renderLayout($data = null)
+function renderLayout($data = null, $layout = null)
 {
     ob_start();
-    include_once( VIEWS_PATH . 'layout.php');
+    if(!$layout){
+        include_once( VIEWS_PATH . 'layouts/' . 'layout.php');
+    }else{
+        include_once( VIEWS_PATH . 'layouts/' . $layout . '.php');
+    }
     return ob_get_clean();
+
 
 }
 
